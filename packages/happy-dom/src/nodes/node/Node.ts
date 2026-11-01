@@ -6,6 +6,8 @@ import NodeTypeEnum from './NodeTypeEnum.js';
 import NodeDocumentPositionEnum from './NodeDocumentPositionEnum.js';
 import NodeUtility from './NodeUtility.js';
 import type Attr from '../attr/Attr.js';
+import type DocumentType from '../document-type/DocumentType.js';
+import type ProcessingInstruction from '../processing-instruction/ProcessingInstruction.js';
 import NodeList from './NodeList.js';
 import MutationRecord from '../../mutation-observer/MutationRecord.js';
 import MutationTypeEnum from '../../mutation-observer/MutationTypeEnum.js';
@@ -26,6 +28,17 @@ import type HTMLTextAreaElement from '../html-text-area-element/HTMLTextAreaElem
 import type HTMLSlotElement from '../html-slot-element/HTMLSlotElement.js';
 import NodeFactory from '../NodeFactory.js';
 import type SVGStyleElement from '../svg-style-element/SVGStyleElement.js';
+
+/**
+ * Fixed nodeName values for node types that do not derive the name from instance state.
+ */
+const STATIC_NODE_NAMES: Partial<Record<NodeTypeEnum, string>> = {
+	[NodeTypeEnum.textNode]: '#text',
+	[NodeTypeEnum.cdataSectionNode]: '#cdata-section',
+	[NodeTypeEnum.commentNode]: '#comment',
+	[NodeTypeEnum.documentNode]: '#document',
+	[NodeTypeEnum.documentFragmentNode]: '#document-fragment'
+};
 
 /**
  * Node.
@@ -252,10 +265,29 @@ export default class Node extends EventTarget {
 	/**
 	 * Node name.
 	 *
+	 * Dispatches on nodeType so libraries that read the un-clobberable
+	 * Node.prototype getter (e.g. DOMPurify anti-clobbering) get the real name.
+	 *
 	 * @returns Node name.
 	 */
 	public get nodeName(): string {
-		return '';
+		const nodeType = this[PropertySymbol.nodeType];
+		const staticName = STATIC_NODE_NAMES[nodeType];
+		if (staticName !== undefined) {
+			return staticName;
+		}
+		switch (nodeType) {
+			case NodeTypeEnum.elementNode:
+				return (<Element>(<unknown>this))[PropertySymbol.tagName] ?? '';
+			case NodeTypeEnum.attributeNode:
+				return (<Attr>(<unknown>this))[PropertySymbol.name] ?? '';
+			case NodeTypeEnum.processingInstructionNode:
+				return (<ProcessingInstruction>(<unknown>this))[PropertySymbol.target];
+			case NodeTypeEnum.documentTypeNode:
+				return (<DocumentType>(<unknown>this))[PropertySymbol.name];
+			default:
+				return '';
+		}
 	}
 
 	/**
