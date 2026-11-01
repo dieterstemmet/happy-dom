@@ -202,10 +202,14 @@ export default class HTMLInputElementValueSanitizer {
 		if (intH > 23 || intM > 59 || ms > 59999) {
 			return '';
 		}
-		if (ms === 0) {
+		// Omit seconds only when the author did not supply a seconds component.
+		// Browsers round-trip "01:02:00" as "01:02:00", not "01:02".
+		if (match[3] === undefined) {
 			return `${match[1]}:${match[2]}`;
-		} else {
-			return `${match[1]}:${match[2]}${ms >= 10000 ? `:${ms / 1000}` : `:0${ms / 1000}`}`;
 		}
+		let seconds = ms >= 10000 ? `:${ms / 1000}` : `:0${ms / 1000}`;
+		// Drop trailing millisecond zeros ("01:02:00.000" → "01:02:00").
+		seconds = seconds.replace(/(?:\.0*|(\.\d+?)0+)$/, '$1');
+		return `${match[1]}:${match[2]}${seconds}`;
 	}
 }

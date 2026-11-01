@@ -244,6 +244,19 @@ describe('HTMLInputElement', () => {
 			expect(element.value).toBe('http://www.test.com');
 		});
 
+		it('Preserves zero seconds and milliseconds when they are supplied for type "time".', () => {
+			element.type = 'time';
+			element.value = '01:02:00';
+			expect(element.value).toBe('01:02:00');
+			element.value = '01:02:00.000';
+			expect(element.value).toBe('01:02:00');
+			element.value = '01:02';
+			expect(element.value).toBe('01:02');
+			element.step = '1';
+			element.value = '01:02:00';
+			expect(element.value).toBe('01:02:00');
+		});
+
 		it('Converts null to empty string.', () => {
 			element.type = 'text';
 			element.value = 'test';

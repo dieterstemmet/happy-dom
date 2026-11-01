@@ -1136,7 +1136,13 @@ export default class HTMLInputElement extends HTMLElement {
 				if (!Number.isInteger(value) || value < 0) {
 					this.value = '';
 				} else {
-					this.value = new Date(Number(value)).toISOString().slice(11, -1);
+					// toISOString always emits seconds/ms; drop a trailing :00.000 so
+					// whole-minute values stay "HH:MM". Non-zero seconds are kept.
+					const time = new Date(Number(value)).toISOString().slice(11, -1);
+					this.value = time
+						.replace(/:00\.000$/, '')
+						.replace(/(\.\d*?)0+$/, '$1')
+						.replace(/\.$/, '');
 				}
 				break;
 			case 'week': {
