@@ -192,6 +192,13 @@ export default [
 		'false'
 	],
 	[
+		'--browser.fetch.disableErrorLogging',
+		'',
+		'boolean',
+		'Disables console.error() for non-ok fetch responses.',
+		'false'
+	],
+	[
 		'--browser.fetch.requestHeaders=<value>',
 		'--browser.fetch.requestHeader, -rh',
 		'string',

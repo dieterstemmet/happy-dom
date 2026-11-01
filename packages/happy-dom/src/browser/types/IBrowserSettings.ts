@@ -91,6 +91,13 @@ export default interface IBrowserSettings {
 		disableStrictSSL: boolean;
 
 		/**
+		 * Disables console.error() for non-ok fetch responses (4xx/5xx).
+		 *
+		 * Useful in tests that intentionally mock error responses (e.g. with MSW).
+		 */
+		disableErrorLogging: boolean;
+
+		/**
 		 * Fetch interceptor.
 		 */
 		interceptor: IFetchInterceptor | null;

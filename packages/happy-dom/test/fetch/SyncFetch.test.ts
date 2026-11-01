@@ -2018,6 +2018,63 @@ describe('SyncFetch', () => {
 			});
 		}
 
+		it('Logs non-ok responses to the console by default.', () => {
+			browserFrame.url = 'https://localhost:8080/';
+
+			mockModule('child_process', {
+				execFileSync: () => {
+					return JSON.stringify({
+						error: null,
+						incomingMessage: {
+							statusCode: 500,
+							statusMessage: 'Internal Server Error',
+							rawHeaders: [],
+							data: Buffer.from('fail').toString('base64')
+						}
+					});
+				}
+			});
+
+			new SyncFetch({
+				browserFrame,
+				window,
+				url: 'https://localhost:8080/some/path'
+			}).send();
+
+			expect(browserFrame.page.virtualConsolePrinter.readAsString()).toBe(
+				'GET https://localhost:8080/some/path 500 (Internal Server Error)\n'
+			);
+		});
+
+		it('Skips logging non-ok responses when "settings.fetch.disableErrorLogging" is true.', () => {
+			browserFrame.url = 'https://localhost:8080/';
+			browserFrame.page.context.browser.settings.fetch.disableErrorLogging = true;
+
+			mockModule('child_process', {
+				execFileSync: () => {
+					return JSON.stringify({
+						error: null,
+						incomingMessage: {
+							statusCode: 500,
+							statusMessage: 'Internal Server Error',
+							rawHeaders: [],
+							data: Buffer.from('fail').toString('base64')
+						}
+					});
+				}
+			});
+
+			const response = new SyncFetch({
+				browserFrame,
+				window,
+				url: 'https://localhost:8080/some/path'
+			}).send();
+
+			expect(response.ok).toBe(false);
+			expect(response.status).toBe(500);
+			expect(browserFrame.page.virtualConsolePrinter.readAsString()).toBe('');
+		});
+
 		it(`Handles network error response.`, () => {
 			browserFrame.url = 'https://localhost:8080/';
 

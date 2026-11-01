@@ -1650,6 +1650,49 @@ describe('Fetch', () => {
 			});
 		}
 
+		it('Logs non-ok responses to the console by default.', async () => {
+			const window = new Window({ url: 'https://localhost:8080/' });
+
+			mockNetwork('https', {
+				responseText: 'fail',
+				responseProperties: {
+					statusCode: 500,
+					statusMessage: 'Internal Server Error'
+				}
+			});
+
+			await window.fetch('https://localhost:8080/some/path');
+
+			expect(window.happyDOM.virtualConsolePrinter.readAsString()).toBe(
+				'GET https://localhost:8080/some/path 500 (Internal Server Error)\n'
+			);
+		});
+
+		it('Skips logging non-ok responses when "settings.fetch.disableErrorLogging" is true.', async () => {
+			const window = new Window({
+				url: 'https://localhost:8080/',
+				settings: {
+					fetch: {
+						disableErrorLogging: true
+					}
+				}
+			});
+
+			mockNetwork('https', {
+				responseText: 'fail',
+				responseProperties: {
+					statusCode: 500,
+					statusMessage: 'Internal Server Error'
+				}
+			});
+
+			const response = await window.fetch('https://localhost:8080/some/path');
+
+			expect(response.ok).toBe(false);
+			expect(response.status).toBe(500);
+			expect(window.happyDOM.virtualConsolePrinter.readAsString()).toBe('');
+		});
+
 		it(`Handles network error response.`, async () => {
 			const window = new Window({ url: 'https://localhost:8080/' });
 			const url = 'https://localhost:8080/some/path';

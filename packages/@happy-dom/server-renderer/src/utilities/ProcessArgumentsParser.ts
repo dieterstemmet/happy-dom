@@ -117,6 +117,8 @@ export default class ProcessArgumentsParser {
 					config.browser.fetch.disableSameOriginPolicy = true;
 				} else if (arg === '--browser.fetch.disableStrictSSL') {
 					config.browser.fetch.disableStrictSSL = true;
+				} else if (arg === '--browser.fetch.disableErrorLogging') {
+					config.browser.fetch.disableErrorLogging = true;
 				} else if (arg.startsWith('--browser.fetch.interceptor=')) {
 					throw new Error(
 						'The setting "browser.fetch.interceptor" can\'t be set via command line.'

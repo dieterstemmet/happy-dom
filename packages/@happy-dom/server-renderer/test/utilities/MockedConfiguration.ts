@@ -29,6 +29,7 @@ export default <IServerRendererConfiguration>{
 		fetch: {
 			disableSameOriginPolicy: true,
 			disableStrictSSL: true,
+			disableErrorLogging: false,
 			interceptor: null,
 			requestHeaders: [
 				{

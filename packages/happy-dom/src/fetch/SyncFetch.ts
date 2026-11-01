@@ -305,9 +305,11 @@ export default class SyncFetch {
 		}
 
 		if (this.request.method !== 'GET') {
-			this.#browserFrame.page.console.error(
-				`${this.request.method} ${this.request.url} 404 (Not Found)`
-			);
+			if (!this.#browserFrame.page.context.browser.settings.fetch.disableErrorLogging) {
+				this.#browserFrame.page.console.error(
+					`${this.request.method} ${this.request.url} 404 (Not Found)`
+				);
+			}
 			const response = VirtualServerUtility.getNotFoundSyncResponse(this.#window, this.request.url);
 			const interceptedResponse = this.interceptor?.afterSyncResponse
 				? this.interceptor.afterSyncResponse({
@@ -325,9 +327,11 @@ export default class SyncFetch {
 			filePath = stat.isDirectory() ? Path.join(filePath, 'index.html') : filePath;
 			buffer = FS.readFileSync(filePath);
 		} catch {
-			this.#browserFrame.page.console.error(
-				`${this.request.method} ${this.request.url} 404 (Not Found)`
-			);
+			if (!this.#browserFrame.page.context.browser.settings.fetch.disableErrorLogging) {
+				this.#browserFrame.page.console.error(
+					`${this.request.method} ${this.request.url} 404 (Not Found)`
+				);
+			}
 			const response = VirtualServerUtility.getNotFoundSyncResponse(this.#window, this.request.url);
 			const interceptedResponse = this.interceptor?.afterSyncResponse
 				? this.interceptor.afterSyncResponse({
@@ -557,7 +561,10 @@ export default class SyncFetch {
 			: undefined;
 		const returnResponse =
 			typeof interceptedResponse === 'object' ? interceptedResponse : redirectedResponse;
-		if (!returnResponse.ok) {
+		if (
+			!returnResponse.ok &&
+			!this.#browserFrame.page.context.browser.settings.fetch.disableErrorLogging
+		) {
 			this.#browserFrame.page.console.error(
 				`${this.request.method} ${this.request.url} ${returnResponse.status} (${returnResponse.statusText})`
 			);

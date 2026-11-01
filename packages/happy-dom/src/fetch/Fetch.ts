@@ -358,9 +358,11 @@ export default class Fetch {
 		const taskID = this.#browserFrame[PropertySymbol.asyncTaskManager].startTask();
 
 		if (this.request.method !== 'GET') {
-			this.#browserFrame.page.console.error(
-				`${this.request.method} ${this.request.url} 404 (Not Found)`
-			);
+			if (!this.#browserFrame.page.context.browser.settings.fetch.disableErrorLogging) {
+				this.#browserFrame.page.console.error(
+					`${this.request.method} ${this.request.url} 404 (Not Found)`
+				);
+			}
 			const response = VirtualServerUtility.getNotFoundResponse(this.#window);
 			const interceptedResponse = this.interceptor?.afterAsyncResponse
 				? await this.interceptor.afterAsyncResponse({
@@ -379,9 +381,11 @@ export default class Fetch {
 			filePath = stat.isDirectory() ? Path.join(filePath, 'index.html') : filePath;
 			buffer = await FS.promises.readFile(filePath);
 		} catch (error) {
-			this.#browserFrame.page.console.error(
-				`${this.request.method} ${this.request.url} 404 (Not Found)`
-			);
+			if (!this.#browserFrame.page.context.browser.settings.fetch.disableErrorLogging) {
+				this.#browserFrame.page.console.error(
+					`${this.request.method} ${this.request.url} 404 (Not Found)`
+				);
+			}
 
 			const response = VirtualServerUtility.getNotFoundResponse(this.#window);
 			const interceptedResponse = this.interceptor?.afterAsyncResponse
@@ -579,7 +583,11 @@ export default class Fetch {
 					interceptedResponse instanceof Response ? interceptedResponse : response;
 
 				// The browser outputs errors to the console when the response is not ok.
-				if (returnResponse instanceof Response && !returnResponse.ok) {
+				if (
+					returnResponse instanceof Response &&
+					!returnResponse.ok &&
+					!this.#browserFrame.page.context.browser.settings.fetch.disableErrorLogging
+				) {
 					this.#browserFrame.page.console.error(
 						`${this.request.method} ${this.request.url} ${returnResponse.status} (${returnResponse.statusText})`
 					);

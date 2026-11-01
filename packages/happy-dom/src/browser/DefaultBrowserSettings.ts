@@ -28,6 +28,7 @@ export default <IBrowserSettings>{
 	fetch: {
 		disableSameOriginPolicy: false,
 		disableStrictSSL: false,
+		disableErrorLogging: false,
 		interceptor: null,
 		requestHeaders: null,
 		virtualServers: null
